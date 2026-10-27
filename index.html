@@ -342,8 +342,8 @@ const WIFIP=['e1','v5p','s2','r5','p1','m1','d1'];
 // ---- Product spotlight videos (edit here) ----
 const OUTLETP=['v5p','e1','p1','m1','r5'];
 const V5POUTH="🔌 Outlet needed within 5 ft",V5POUT="An outlet needs to be available within 5 ft of the camera location, or additional wiring and charges may apply.";
-const SPOT={r5:['Meet the R5','A quick look at the R5W and R5B.'],v5p:['Meet the V5P','A quick look at the V5P outdoor camera.']};
-function spotVid(id){const v=SPOT[id];if(!v)return '';const l=LANG==='es'?'es':'en',t=T(v[0]);return `<figure class="vidcard" id="spot-${id}" style="margin-left:0;margin-right:0"><h4>${esc(t)}</h4><video id="spot-${id}-el" controls playsinline preload="none" width="1280" height="720" poster="media/spot-${id}-${l}-poster.jpg?v=1" aria-label="${esc(t)}"><source src="media/spot-${id}-${l}.mp4?v=1" type="video/mp4"></video><p class="note">${esc(T(v[1]))}</p></figure>`}
+const SPOT={r5:['Meet the R5','A quick look at the R5W and R5B.',2],v5p:['Meet the V5P','A quick look at the V5P outdoor camera.']};
+function spotVid(id){const v=SPOT[id];if(!v)return '';const l=LANG==='es'?'es':'en',t=T(v[0]),q='?v='+(v[2]||1);return `<figure class="vidcard" id="spot-${id}" style="margin-left:0;margin-right:0"><h4>${esc(t)}</h4><video id="spot-${id}-el" controls playsinline preload="none" width="1280" height="720" poster="media/spot-${id}-${l}-poster.jpg${q}" aria-label="${esc(t)}"><source src="media/spot-${id}-${l}.mp4${q}" type="video/mp4"></video><p class="note">${esc(T(v[1]))}</p></figure>`}
 function heroExtra(c){let h=`<div class="chips">${badges(c)}</div>`;if(c.id=='r5')h+=`<p class="r5vid-l"><a href="#r5-video" onclick="tab='ts';render();setTimeout(()=>{const v=document.getElementById('r5-video');if(v)v.scrollIntoView({behavior:'smooth'})},60);return false">${esc(T("▶ Watch: how to reset your R5"))}</a></p>`;
  if(c.id=='d1')h+=d1Req('d1-req');
  if(c.id=='p1')h+=`<div class="callout"><h4>🧲 Magnetic base</h4><p>${esc(MAGTXT)}</p></div>`;
