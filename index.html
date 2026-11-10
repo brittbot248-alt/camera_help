@@ -1021,7 +1021,7 @@ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',
 @media (max-width:640px){.qaftiles>.qafopts{grid-template-columns:1fr 1fr;gap:10px}.qafopt.qaftile{padding:10px 6px}.qafopt.qaftile .qafpic{width:min(130px,100%);height:130px}.qaftn{font-size:.9rem}.qaftype>.qafopts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}.qaftype .qafopt{width:auto;padding:8px 8px;gap:6px;font-size:.92rem;line-height:1.25}}
 /* v6.6 3h: ask which QA plan before opening the request form */
 .qafask{position:fixed;inset:0;z-index:80;display:flex;align-items:center;justify-content:center;padding:16px;background:rgba(43,40,41,.45)}
-.qafask[hidden]{display:none}
+.qafask[hidden]{display:none!important;pointer-events:none}
 .qafaskbox{background:#fff;border-radius:14px;padding:18px 18px 14px;max-width:420px;width:100%;box-shadow:0 8px 28px rgba(43,40,41,.25)}
 .qafaskbox h3{margin:0 0 6px;font-size:1.15rem}
 .qafaskopts{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:12px 0}
@@ -2177,14 +2177,14 @@ let toastT=0;
 // v6.6 (t279u/t280u): Start over wipes the whole planner (plan, marked rooms, floor plan image, browser-saved plan, Quick start choices), after a confirm, with a 6-second Undo
 function resetAsk(on){const c=$('#plnr-conf'),b=$('#plnr-reset');if(!c)return;c.hidden=!on;if(b)b.setAttribute('aria-expanded',on?'true':'false');
  if(on){const y=c.querySelector('[data-act=resetyes]');c.scrollIntoView({behavior:'smooth',block:'center'});try{y.focus({preventScroll:true})}catch(_){}}else if(b)try{b.focus()}catch(_){}}
-function resetAll(){let sv=null,dr=null;try{sv=localStorage.getItem(KEY)}catch(_){}try{dr=sessionStorage.getItem(DRAFT)}catch(_){}
- const snap={lv:LV?JSON.stringify(LV):null,cur:LV?LV.cur:0,qk:JSON.stringify(QK),sv,dr,mk:mkOpen,qko:qkOpen,dirty,tips:[...TOPEN]};
+function resetAll(){let sv=null,dr=null,qa=null;try{sv=localStorage.getItem(KEY)}catch(_){}try{dr=sessionStorage.getItem(DRAFT)}catch(_){}try{if(typeof RQF!=='undefined'&&RQF.clearQa)qa=RQF.clearQa()}catch(_){}
+ const snap={lv:LV?JSON.stringify(LV):null,cur:LV?LV.cur:0,qk:JSON.stringify(QK),sv,dr,mk:mkOpen,qko:qkOpen,dirty,tips:[...TOPEN],qa};
  LV=null;P=null;selO=null;mode='sel';sc=[];drag=null;lvUI='';dirty=0;mkOpen=0;QK=JSON.parse(QK0);qkOpen=1;TOPEN.clear();SGO.clear();fileMode='new';
  try{localStorage.removeItem(KEY)}catch(_){}try{sessionStorage.removeItem(DRAFT)}catch(_){}
  ['#plnr-file','#plnr-imp'].forEach(q=>{const i=$(q);if(i)i.value=''});
  resetAsk(0);renderQK();renderAll();{const sv=$('#plnr-svg');if(sv)sv.innerHTML=''}say(T('Choose a starting point above.'));
  toast(T('Plan cleared. You’re back at the start.'),()=>{LV=snap.lv?JSON.parse(snap.lv):null;if(LV)setLv(snap.cur);else{P=null;selO=null}QK=JSON.parse(snap.qk);mkOpen=snap.mk;qkOpen=snap.qko;dirty=snap.dirty;snap.tips.forEach(t=>TOPEN.add(t));
-  try{if(snap.sv!=null)localStorage.setItem(KEY,snap.sv)}catch(_){}try{if(snap.dr!=null)sessionStorage.setItem(DRAFT,snap.dr)}catch(_){}
+  try{if(snap.sv!=null)localStorage.setItem(KEY,snap.sv)}catch(_){}try{if(snap.dr!=null)sessionStorage.setItem(DRAFT,snap.dr)}catch(_){}try{if(typeof RQF!=='undefined'&&RQF.restoreQa)RQF.restoreQa(snap.qa)}catch(_){}
   renderQK();renderAll();say(T('Your plan is back.'))});
  $('#planner').scrollIntoView({behavior:'smooth'})}
 function toast(t,undo){let el=$('#plnr-toast');if(!el){el=document.createElement('div');el.id='plnr-toast';el.setAttribute('role','status');el.setAttribute('aria-live','polite');document.body.appendChild(el)}
@@ -2722,10 +2722,10 @@ function showPlanPick(then){let d=document.getElementById('qaf-ask');if(!d){d=do
   d.addEventListener('change',ev=>{if(ev.target.name==='qaf-ask-plan'){d.querySelector('[data-askgo]').disabled=false;d.querySelectorAll('.qafopt').forEach(l=>l.classList.toggle('on',l.querySelector('input').checked))}});
   d.addEventListener('click',ev=>{if(ev.target===d||ev.target.closest('[data-askx]')){hidePlanPick();return}
    const go=ev.target.closest&&ev.target.closest('[data-askgo]');if(!go||go.disabled)return;const p=(d.querySelector('input[name=qaf-ask-plan]:checked')||{}).value;if(!p)return;hidePlanPick();applyPlan(p);if(typeof d._then==='function')d._then()})}
- d._then=then;d.querySelectorAll('input[name=qaf-ask-plan]').forEach(i=>{i.checked=false});d.querySelectorAll('.qafopt').forEach(l=>l.classList.remove('on'));const g=d.querySelector('[data-askgo]');if(g)g.disabled=true;d.hidden=false;const f=d.querySelector('input');if(f)f.focus()}
+ d._then=then;const last=knownPlan();d.querySelectorAll('input[name=qaf-ask-plan]').forEach(i=>{i.checked=i.value===last});d.querySelectorAll('.qafopt').forEach(l=>l.classList.toggle('on',!!l.querySelector('input').checked));const g=d.querySelector('[data-askgo]');if(g)g.disabled=!last;d.hidden=false;const f=d.querySelector(last?'input:checked':'input');if(f)f.focus()}
 function scrollOver(){requestAnimationFrame(()=>{const o=$q('#qaf-over');if(o&&!o.hidden)o.scrollIntoView({block:'center'})})}
 function requestOpen(preferPlanner){if(!root)return;const go=()=>{try{if(preferPlanner||hasPlannerCams()){if(location.hash!='#request')history.pushState(null,'','#request');if(typeof navOn==='function')navOn('request')}}catch(_){}if(preferPlanner||hasPlannerCams())fromPlanner();openForm();scrollOver()};
- if(knownPlan()){go();return}showPlanPick(go)}
+ showPlanPick(go)} /* v6.6 (t325u): always ask, even if a plan is already known */
 /* ---------- mount ---------- */
 function isOpen(){return root&&!$q('#qaf-body').hidden}
 function openForm(focus){if(!root)return;const b=$q('#qaf-body'),was=!b.hidden;b.hidden=false;$q('#qaf-launch').hidden=true;$q('#qaf-open').setAttribute('aria-expanded','true');refresh();
@@ -2745,7 +2745,9 @@ function mount(){root=document.getElementById('qaf-root');if(!root)return;
  new IntersectionObserver(es=>es.forEach(x=>{if(x.isIntersecting)sz()})).observe($q('#qaf-sigpad'));
  overEvents();pics();refresh()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',mount);else mount();
-return {get values(){return V},open:openForm,close:closeForm,isOpen,payload,issues,required,prefill,fromPlanner,requestOpen,refresh,rules:R,rowCount}})();
+function clearQa(){const was={cur:V.Current_QA_Plan,pref:V.Preferred_QA_Plan};delete V.Current_QA_Plan;delete V.Preferred_QA_Plan;delete V.Agree_rate_increase;try{refresh()}catch(_){}return was}
+function restoreQa(was){if(!was)return;if(was.cur)V.Current_QA_Plan=was.cur;else delete V.Current_QA_Plan;if(was.pref)V.Preferred_QA_Plan=was.pref;else delete V.Preferred_QA_Plan;try{refresh()}catch(_){}}
+return {get values(){return V},open:openForm,close:closeForm,isOpen,payload,issues,required,prefill,fromPlanner,requestOpen,clearQa,restoreQa,refresh,rules:R,rowCount}})();
 
 </script>
 </body></html>
